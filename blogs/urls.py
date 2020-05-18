@@ -16,17 +16,21 @@ Including another URLconf
 # 1. 导入系统的logging
 import logging
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.http import HttpResponse
 # 2. 获取日志器
-logger = logging.getLogger('django')
-
-def log(request):
-    # 3. 使用日志器
-    logger.info('info')
-    return HttpResponse('test')
+# logger = logging.getLogger('django')
+#
+# def log(request):
+#     # 3. 使用日志器
+#     logger.info('info')
+#     return HttpResponse('test')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', log),
+    # 设置元组
+    # urlconf_module 子应用的路由
+    # app_name
+    path('', include(('users.urls', 'users'), namespace='register')),
+    # path('', log),
 ]
