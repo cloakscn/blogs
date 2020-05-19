@@ -77,7 +77,7 @@ class RegisterView(View):
         response =  redirect(reverse('home:index'))
         # 设置cookie信息，用户登录持久化
         response.set_cookie('is_login', True)
-        response.set_cookie('username', user.username, max_age=1800)
+        response.set_cookie('username', user.username, max_age=7*24*3600)
         return response
 
 
@@ -155,3 +155,74 @@ class SmsCodeViem(View):
         CCP().send_template_sms(mobile, [sms_code, 5], 1)
         # 6.返回响应
         return JsonResponse({'code': RETCODE.OK, 'errmsg': '短信发送成功'})
+
+
+class LoginView(View):
+
+    def get(self, request):
+
+        return render(request, 'login.html')
+
+    def post(self, request):
+        """
+         1.接收参数
+         2.参数验证
+         3.用户认证登录
+         4.状态保持
+         5.根据用户选择进行判断
+         6.设置cookie
+         7.返回响应
+         :param request:
+         :return:
+         """
+        # 1.接收参数
+        mobile = request.POST.get('mobile')
+        password = request.POST.get('password')
+        remember = request.POST.get('remember')
+        # 2.参数验证
+        if not re.match(r'^1[3-9]\d{9}$', mobile):
+            return HttpResponseBadRequest('手机号不符合规则')
+        if not re.match(r'^[0-9A-Za-z]{8,20}$', password):
+            return HttpResponseBadRequest('密码不符合规范')
+        # 3.用户认证登录
+        from django.contrib.auth import authenticate
+        user = authenticate(mobile=mobile,
+                            password=password)
+        if user is None:
+            return HttpResponseBadRequest('用户名或密码错误')
+        # 4.状态保持
+        from django.contrib.auth import login
+        login(request, user)
+        # 5.根据用户选择进行判断
+        # 6.设置cookie
+        response = redirect(reverse('home:index'))
+        if remember != 'on':
+            # 浏览器关闭后
+            request.session.set_expiry(0)
+            response.set_cookie('is_login', True)
+            response.set_cookie('username', user.username, max_age=1800)
+        else:
+            # 默认两周
+            request.session.set_expiry(None)
+            response.set_cookie('is_login', True)
+            response.set_cookie('username', user.username, max_age=7*24*3600)
+        # 7.返回响应
+        return response
+
+from django.contrib.auth import logout
+class LogoutView(View):
+
+    def get(self, request):
+        # 1.session 数据清楚
+        logout(request)
+        # 2.删除部分cookie数据
+        response = redirect(reverse('home:index'))
+        response.delete_cookie('is_login')
+        # 3.跳转到首页
+        return response
+
+class ForgetPasswordView(View):
+
+    def get(self, request):
+
+        return render(request, 'forget_password.html')
