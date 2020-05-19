@@ -6,7 +6,7 @@ class User(AbstractUser):
 
     # 电话号码字段
     # unique 为唯一性字段
-    mobile = models.CharField(max_length=20, unique=True,blank=True)
+    mobile = models.CharField(max_length=20, unique=True, blank=True)
 
     # 头像
     # upload_to为保存到响应的子目录中

@@ -1,19 +1,19 @@
+import re
+import logging
 from django.http.response import HttpResponseBadRequest, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.urls import reverse
 from django_redis import get_redis_connection
 from django.http import HttpResponse
 from utils.response_code import RETCODE
-import logging
-logger = logging.getLogger('django')
 # Create your views here.
 from django.views import View
 from random import randint
 from libs.yuntongxun.sms import CCP
 from libs.captcha.captcha import captcha
-from django.http.response import HttpResponseBadRequest
 from users.models import User
-import re
 from django.db import DatabaseError
+logger = logging.getLogger('django')
 
 class RegisterView(View):
 
@@ -66,8 +66,19 @@ class RegisterView(View):
         except DatabaseError as e:
             logger.error(e)
             return HttpResponseBadRequest('注册失败')
+
+        from django.contrib.auth import login
+        login(request, user)
         # 4.跳转到指定页面
-        return HttpResponse('注册成功，重定向到首页')
+        # return HttpResponse('注册成功，重定向到首页')
+
+        # redirect 重定向
+        # reverse 是可以通过namespace：name 来获取视图所对应的路由
+        response =  redirect(reverse('home:index'))
+        # 设置cookie信息，用户登录持久化
+        response.set_cookie('is_login', True)
+        response.set_cookie('username', user.username, max_age=1800)
+        return response
 
 
 class ImageCodeViem(View):
