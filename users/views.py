@@ -195,7 +195,12 @@ class LoginView(View):
         login(request, user)
         # 5.根据用户选择进行判断
         # 6.设置cookie
-        response = redirect(reverse('home:index'))
+        # 7.根据next参数来进行页面跳转
+        next_page = request.GET.get('next')
+        if next_page:
+            response = redirect(next_page)
+        else:
+            response = redirect(reverse('home:index'))
         if remember != 'on':
             # 浏览器关闭后
             request.session.set_expiry(0)
@@ -226,3 +231,105 @@ class ForgetPasswordView(View):
     def get(self, request):
 
         return render(request, 'forget_password.html')
+
+    def post(self, request):
+        """
+        1.接收数据
+        2.验证数据
+        3.用户信息查询
+        4.如果手机号查询成功，修改密码
+        5.未查出，注册新用户
+        6.页面重定向登录页面
+        7.返回响应
+        :param request:
+        :return:
+        """
+        # 1.接收数据
+        mobile = request.POST.get('mobile')
+        password = request.POST.get('password')
+        password2 = request.POST.get('password2')
+        smscode = request.POST.get('sms_code')
+        # 2.验证数据
+        if not all([mobile, password, password2, smscode]):
+            return HttpResponseBadRequest('参数不全')
+        if not re.match(r'^1[3-9]\d{9}$', mobile):
+            return HttpResponseBadRequest('手机号不符合规范')
+        if not re.match(r'^[0-9A-Za-z]{8,20}$', password):
+            return HttpResponseBadRequest('请输入8-20位密码，密码是字母和数字')
+        if password != password2:
+            return HttpResponseBadRequest('两次密码不一致')
+        redis_conn = get_redis_connection('default')
+        redis_sms_code = redis_conn.get('sms:%s' % mobile)
+        if redis_sms_code is None:
+            return HttpResponseBadRequest('短信验证码已过期')
+        if smscode != redis_sms_code.decode():
+            return HttpResponseBadRequest('短信验证码错误')
+        # 3.用户信息查询
+        try:
+            user = User.objects.get(mobile = mobile)
+        except User.DoesNotExist:
+            # 5.未查出，注册新用户
+            try:
+                User.objects.create_user(username=mobile,
+                                     mobile=mobile,
+                                     password=password)
+            except Exception:
+                return HttpResponseBadRequest('创建失败，请稍后重试')
+        else:
+            # 4.如果手机号查询成功，修改密码
+            user.set_password(password)
+            user.save()
+        # 6.页面重定向登录页面
+        response = redirect(reverse('users:login'))
+        # 7.返回响应
+        return response
+
+from django.contrib.auth.mixins import LoginRequiredMixin
+# 如果用户未登录，进行默认跳转
+# 默认跳转路由是： accounts/login?next=xxx
+class UserClientView(LoginRequiredMixin, View):
+
+    def get(self, request):
+        # 获取登录信息
+        user = request.user
+        # 组织获取用户信息
+        context = {
+            'username': user.username,
+            'mobile': user.mobile,
+            'avatar': user.avatar.url if user.avatar else None,
+            'user_desc':user.user_desc
+        }
+        return render(request, 'center.html', context=context)
+
+    def post(self, request):
+        """
+        1.接收参数
+        2.将参数保存
+        3.跟新cookie信息
+        4.刷新当前页面（重定向）
+        5.返回响应
+        :param request:
+        :return:
+        """
+        user = request.user
+        # 1.接收参数
+        username = request.POST.get('username', user.username)
+        user_desc = request.POST.get('desc', user.user_desc)
+        avatar = request.FILES.get('avatar')
+        # 2.将参数保存
+        try:
+            user.username = username
+            user.user_desc = user_desc
+            if avatar:
+                user.avatar = avatar
+            user.save()
+        except Exception as e:
+            logger.error(e)
+            return HttpResponseBadRequest('修改失败请稍后再试')
+        # 3.跟新cookie信息
+        # 4.刷新当前页面（重定向）
+        response = redirect(reverse('users:center'))
+        response.set_cookie('username', user.username, max_age=1800)
+        # 5.返回响应
+        return response
+

@@ -82,7 +82,9 @@ DATABASES = {
         'PORT': 3306,
         'USER': 'root',
         'PASSWORD': 'haosql',
-        'NAME': 'djangoblog'
+        'NAME': 'djangoblog',
+        'USE_UNICODE': True,
+        'CHARSET': 'utf-8',
     }
 }
 
@@ -194,3 +196,12 @@ LOGGING = {
 # 自定义user类
 # 配置信息为‘子应用名.模型类型’
 AUTH_USER_MODEL = 'users.User'
+
+# 修改系统的未登录跳转
+LOGIN_URL = '/login/'
+
+# 设置上传图片 保存到media目录下
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# 设置图片访问的同一路由
+MEDIA_URL = '/media/'

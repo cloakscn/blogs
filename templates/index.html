@@ -53,22 +53,23 @@
     </div>
     <!--登录/个人中心-->
     <div class="navbar-collapse">
-            <ul class="nav navbar-nav">
-                <!-- 如果用户已经登录，则显示用户名下拉框 -->
-                <li class="nav-item dropdown" v-if="is_login">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" @click="show_menu_click">[[username]]</a>
-                    <div class="dropdown-menu" aria-labelledby="navbarDropdown" style="display: block" v-show="show_menu">
-                        <a class="dropdown-item" href="../static/write_blog.html">写文章</a>
-                        <a class="dropdown-item" href='../static/center.html'>个人信息</a>
-                        <a class="dropdown-item" href='{% url 'users:logout' %}'>退出登录</a>
-                    </div>
-                </li>
-                <!-- 如果用户未登录，则显示登录按钮 -->
-                <li class="nav-item" v-else>
-                    <a class="nav-link" href="{% url 'users:login' %}">登录</a>
-                </li>
-            </ul>
-        </div>
+        <ul class="nav navbar-nav">
+            <!-- 如果用户已经登录，则显示用户名下拉框 -->
+            <li class="nav-item dropdown" v-if="is_login">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+                   aria-haspopup="true" aria-expanded="false" @click="show_menu_click">[[username]]</a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown" style="display: block" v-show="show_menu">
+                    <a class="dropdown-item" href="{% url 'users:logout' %}">写文章</a>
+                    <a class="dropdown-item" href='{% url 'users:center' %}'>个人信息</a>
+                    <a class="dropdown-item" href='{% url 'users:logout' %}'>退出登录</a>
+                </div>
+            </li>
+            <!-- 如果用户未登录，则显示登录按钮 -->
+            <li class="nav-item" v-else>
+                <a class="nav-link" href="{% url 'users:login' %}">登录</a>
+            </li>
+        </ul>
+    </div>
 </nav>
 
 <!-- content -->
