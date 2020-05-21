@@ -1,7 +1,7 @@
 # 进行users子应用的视图路由
 from django.urls import path
 from users.views import RegisterView, ImageCodeViem, SmsCodeViem, LoginView, LogoutView, ForgetPasswordView, \
-    UserClientView
+    UserClientView, WriteBlogView
 
 urlpatterns = [
     # path的第一个参数是路由
@@ -25,5 +25,8 @@ urlpatterns = [
 
     # 个人中心
     path('center/', UserClientView.as_view(), name='center'),
+
+    # 博客发布
+    path('writeblog/', WriteBlogView.as_view(), name='writeblog'),
 
 ]

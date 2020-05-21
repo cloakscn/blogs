@@ -80,7 +80,6 @@ class RegisterView(View):
         response.set_cookie('username', user.username, max_age=7*24*3600)
         return response
 
-
 class ImageCodeViem(View):
 
     def get(self, request):
@@ -110,7 +109,6 @@ class ImageCodeViem(View):
         redis_conn.setex('img:%s' % uuid, 300, text)
         # 5.返回图片二进制
         return HttpResponse(image, content_type='image/jpeg')
-
 
 class SmsCodeViem(View):
 
@@ -155,7 +153,6 @@ class SmsCodeViem(View):
         CCP().send_template_sms(mobile, [sms_code, 5], 1)
         # 6.返回响应
         return JsonResponse({'code': RETCODE.OK, 'errmsg': '短信发送成功'})
-
 
 class LoginView(View):
 
@@ -333,3 +330,55 @@ class UserClientView(LoginRequiredMixin, View):
         # 5.返回响应
         return response
 
+from home.models import ArticleCategory, Article
+class WriteBlogView(LoginRequiredMixin, View):
+
+    def get(self, request):
+        # 查询所有分类
+        categories = ArticleCategory.objects.all()
+
+        context = {
+            'categories':categories
+        }
+        return render(request, 'write_blog.html', context=context)
+
+    def post(self, request):
+        """
+        1.接收数据
+        2.验证数据
+        3.数据入库
+        4.跳转到指定页面（暂时首页）
+        :param request:
+        :return:
+        """
+        # 1.接收数据
+        avatar = request.FILES.get('avatar')
+        title = request.POST.get('title')
+        category_id = request.POST.get('category')
+        tags = request.POST.get('tags')
+        summary = request.POST.get('sumary')
+        content = request.POST.get('content')
+        user = request.user
+        # 2.验证数据
+        if not all([avatar, title, category_id, tags, summary, content]):
+            return HttpResponseBadRequest('参数不全')
+        try:
+            category = ArticleCategory.objects.get(id = category_id)
+        except ArticleCategory.DoesNotExist:
+            return HttpResponseBadRequest('没有此分类')
+        # 3.数据入库
+        try:
+            article = Article.objects.create(
+                author=user,
+                avatar=avatar,
+                title=title,
+                tags=tags,
+                category=category,
+                summary=summary,
+                content=content,
+            )
+        except Exception as e:
+            logger.error(e)
+            return HttpResponseBadRequest('发布失败，请稍后再试')
+        # 4.跳转到指定页面（暂时首页
+        return redirect(reverse('home:index'))
