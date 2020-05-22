@@ -6,6 +6,31 @@
   5. 采用session技术
 <hr>
 
+#### django基本命令
+
+[更多知识请点击访问](https://code.ziqiangxuetang.com/django)
+
+```
+# 新建一个django project
+django-admin.py startproject project_name
+# 新建app(一般一个项目有多个app,当然通用的app也可以再多个项目中使用)
+python manage.py startapp app_name
+# 创建数据库表 或 更改数据库信息
+	# 创建更改的文件
+python manage.py makemigrations
+	# 将生成的py文件应用到数据库
+python manage.py migrate
+# 使用开发服务器
+python manage.py runserver
+# 清空数据库
+python manage.py flush
+# 创建超级管理员
+python manage.py createsuperuser
+# 导出、导入数据
+python manage.py dumpdata appname > appname.json
+python manage.py loaddata appname.json
+```
+
 ##数据库连接
 ```python
 DATABASES = {
@@ -99,7 +124,7 @@ LOGGING = {
 * INFO = 信息
 * DEBUG = 调试
 * NOTSET = 没有设置
-```python
+​```python
 import logging
 # 创建日志记录器
 logger = logging.getlogger()
@@ -107,4 +132,6 @@ logger = logging.getlogger()
 logger.debug('debug')
 logger.info('info')
 logger.error('error')
+```
+
 ```

@@ -52,7 +52,7 @@ class Article(models.Model):
     # 文章正文
     content = models.TextField()
     # 浏览量
-    tole_view = models.PositiveIntegerField(default=0)
+    total_view = models.PositiveIntegerField(default=0)
     # 评论量
     comments = models.PositiveIntegerField(default=0)
     # 创建时间
@@ -68,3 +68,23 @@ class Article(models.Model):
 
     def __str__(self):
         return self.title
+
+class Comment(models.Model):
+    """
+    评论内容
+    评论文章
+    评论用户
+    评论时间
+    """
+    comment = models.TextField()
+    article = models.ForeignKey(Article, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey('users.User',on_delete=models.SET_NULL, null=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.article.title
+
+    class Meta:
+        db_table = 'tb_comment'
+        verbose_name = '评论管理'
+        verbose_name_plural = verbose_name
