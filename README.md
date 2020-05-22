@@ -124,14 +124,11 @@ LOGGING = {
 * INFO = 信息
 * DEBUG = 调试
 * NOTSET = 没有设置
-​```python
+
+```python
 import logging
-# 创建日志记录器
 logger = logging.getlogger()
-# 输出日志
 logger.debug('debug')
 logger.info('info')
 logger.error('error')
-```
-
 ```
